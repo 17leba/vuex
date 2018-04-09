@@ -125,12 +125,14 @@ export class Store {
 
   dispatch (_type, _payload) {
     // check object-style dispatch
+    // 和commit一样，校验参数
     const {
       type,
       payload
     } = unifyObjectStyle(_type, _payload)
 
     const action = { type, payload }
+    // 取出对应的action
     const entry = this._actions[type]
     if (!entry) {
       if (process.env.NODE_ENV !== 'production') {
@@ -138,9 +140,9 @@ export class Store {
       }
       return
     }
-
+    // 订阅action，对应subscribeAction
     this._actionSubscribers.forEach(sub => sub(action, this.state))
-
+    // 只有一个则直接执行数组中第一个，否则包装成Promise对象全部执行
     return entry.length > 1
       ? Promise.all(entry.map(handler => handler(payload)))
       : entry[0](payload)
