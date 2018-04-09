@@ -80,6 +80,14 @@ export class Store {
 
   commit (_type, _payload, _options) {
     // check object-style commit
+    // 校验参数
+    /* 最主要是处理这种参数形式，即_type是一个Obj
+     * store.commit({
+     *  type: 'increment',
+     *  amount: 10
+     * })
+     *
+     */
     const {
       type,
       payload,
@@ -87,6 +95,7 @@ export class Store {
     } = unifyObjectStyle(_type, _payload, _options)
 
     const mutation = { type, payload }
+    // 获取type对应的方法
     const entry = this._mutations[type]
     if (!entry) {
       if (process.env.NODE_ENV !== 'production') {
@@ -94,11 +103,13 @@ export class Store {
       }
       return
     }
+    // 确保在_withCommit中执行
     this._withCommit(() => {
       entry.forEach(function commitIterator (handler) {
         handler(payload)
       })
     })
+    // 执行订阅者中的所有方法，接收 mutation 和经过 mutation 后的状态作为参数
     this._subscribers.forEach(sub => sub(mutation, this.state))
 
     if (
